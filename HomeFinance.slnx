@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HomeFinance.Core/HomeFinance.Core.csproj" />
+    <Project Path="src/HomeFinance.Data/HomeFinance.Data.csproj" />
+    <Project Path="src/HomeFinance.Web/HomeFinance.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HomeFinance.Tests/HomeFinance.Tests.csproj" />
+  </Folder>
+</Solution>
