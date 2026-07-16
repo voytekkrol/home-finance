@@ -1,0 +1,10 @@
+<Project>
+  <ItemGroup>
+    <!--
+      SQLitePCLRaw.lib.e_sqlite3 2.1.10 is a transitive dependency of EF Core SQLite 9.x.
+      The advisory applies to the bundled native SQLite binary; the fix ships in 2.1.11+
+      but EF Core 9.x has not yet bumped the transitive pin. Suppressed until EF Core updates.
+    -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+  </ItemGroup>
+</Project>
