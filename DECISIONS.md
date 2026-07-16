@@ -37,3 +37,138 @@ Consequences: Avoids licensing pain and per-bank API contracts. Loses ~10% of th
 Context: The project's second goal is learning to orchestrate Claude Code agents, not typing code.
 Decision: Feature loop is `architect` → `implementer` → `test-writer` → `reviewer` → user arbitrates. Definitions live in `.claude/agents/`. When an agent goes wrong, fix the instruction (agent definition, `CLAUDE.md`, or prompt) — not the output.
 Consequences: `CLAUDE.md` is the shared contract every agent reads. Keeps tasks small and independently mergeable. Reviewer findings drive updates to `CLAUDE.md` over time.
+
+## 2026-07-15 — Category taxonomy: no "Other", unified personal + sole-prop ledger
+Context: One owner has a sole proprietorship (jednoosobowa działalność gospodarcza). They want a single ledger covering all money flows — personal household AND business. An accountant handles formal tax obligations and supplies ZUS/PIT amounts; this app just logs the payments.
+Decision:
+- **No "Other" / "Miscellaneous" category.** If a transaction has no home, add a category — "Other" hides that signal.
+- **Unified ledger (Option B).** One `HomeFinanceDbContext`, one transaction list. Business income and expenses sit alongside personal ones. Categories distinguish them.
+- **Transactions are always editable and deletable.** Mistakes are corrected by opening and fixing the row, not by adding correction entries.
+- **"Move to Savings Account" is modeled as a signed transaction** in Phase 1 (no transfer concept yet). Phase 3/4 introduces proper account-to-account transfers.
+- **Building & Community Fees is separate from Utilities.** Czynsz administracyjny / wspólnota mieszkaniowa / fundusz remontowy is structurally distinct from electricity/gas/water bills, and the household has two apartments generating both kinds of expense.
+- **39 seed categories** with a grouped color scheme — similar categories share a color family, making the transaction picker scannable at a glance.
+- **Extendable by design.** Categories are fully user-managed via the app (CRUD). No hard-coded category logic — only seed data.
+- **No parent/child hierarchy in Phase 1.** Flat list; color families provide visual grouping. Hierarchical collapsing is Phase 2+ UI.
+Consequences: `DatabaseInitializer` seeds all 39 categories with colors. Business transactions appear alongside personal — intentional.
+
+### Seed category list (grouped by color family)
+
+**Income — green family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 1 | Business Revenue | Income | `#2E7D32` | Client invoices, services rendered, project payments |
+| 2 | Salary | Income | `#388E3C` | Partner's employment, bonuses, sick pay |
+| 3 | Investment Income | Income | `#66BB6A` | Savings interest, dividends, ETF/fund gains |
+| 4 | Refunds & Reimbursements | Income | `#81C784` | Product returns, client expense reimbursements, tax refunds |
+| 5 | Gifts Received | Income | `#A5D6A7` | Money from family, birthday gifts |
+
+**Housing — blue family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 6 | Mortgage | Expense | `#1565C0` | Monthly instalment, overpayments |
+| 7 | Building & Community Fees | Expense | `#1976D2` | Czynsz administracyjny, wspólnota mieszkaniowa, fundusz remontowy |
+| 8 | Property & Home Insurance | Expense | `#1E88E5` | Ubezpieczenie mieszkania, home contents insurance |
+| 9 | Utilities | Expense | `#42A5F5` | Electricity, gas, water, district heating (media) |
+| 10 | Internet & Phone | Expense | `#90CAF9` | Home internet, mobile plans |
+| 11 | Home Maintenance | Expense | `#BBDEFB` | Repairs, renovation, contractors, tools |
+
+**Food — orange family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 12 | Groceries | Expense | `#E65100` | Supermarkets (Biedronka, Lidl, Kaufland), market, food delivery (groceries not meals) |
+| 13 | Dining Out | Expense | `#FF8F00` | Restaurants, cafes, takeaway meals, work lunches |
+
+**Transport — purple family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 14 | Fuel | Expense | `#4527A0` | Petrol, diesel, EV charging |
+| 15 | Vehicle Insurance | Expense | `#7B1FA2` | OC, AC, NNW |
+| 16 | Vehicle Maintenance | Expense | `#AB47BC` | Servicing, tyres, repairs, car wash |
+| 17 | Public Transport | Expense | `#CE93D8` | ZTM, PKP, intercity, taxi/Bolt |
+
+**Health — red family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 18 | Healthcare | Expense | `#C62828` | Doctor visits, dentist, pharmacy, lab tests, physio |
+| 19 | Health Insurance | Expense | `#EF5350` | Medicover, LuxMed, Enel-Med monthly fee |
+
+**Children — cyan family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 20 | Childcare & Education | Expense | `#006064` | Kindergarten, school fees, tutoring, textbooks |
+| 21 | Children's Activities | Expense | `#00838F` | Sports, music, arts, language classes, camps |
+| 22 | Children's Needs | Expense | `#00BCD4` | Clothing, toys, school supplies, books |
+
+**Personal — pink family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 23 | Personal Care | Expense | `#AD1457` | Haircut, cosmetics, gym, wellness, toiletries |
+| 24 | Clothing & Footwear | Expense | `#F06292` | Adult clothing, shoes, accessories, dry cleaning |
+
+**Entertainment & Lifestyle — deep purple family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 25 | Entertainment | Expense | `#4A148C` | Cinema, concerts, theatre, hobbies, games, sports events |
+| 26 | Subscriptions | Expense | `#6A1B9A` | Netflix, Spotify, gaming, software, news |
+| 27 | Travel & Holidays | Expense | `#9C27B0` | Flights, hotels, car rental, vacation spending |
+
+**Gifts & Charity — amber family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 28 | Gifts Given | Expense | `#F57F17` | Birthday/Christmas presents, wedding gifts |
+| 29 | Charitable Donations | Expense | `#FF8F00` | Charity, church, crowdfunding |
+
+**Savings & Investments — teal family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 30 | Move to Savings Account | Expense | `#00695C` | Transfer to savings/emergency fund (Phase 1 workaround; proper transfers in Phase 3/4) |
+| 31 | Investments | Expense | `#00897B` | Stocks, ETFs, funds purchased |
+
+**Sole-prop obligations — deep orange family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 32 | ZUS | Expense | `#BF360C` | Monthly social security (emerytalna, rentowa, chorobowa, wypadkowa, FP) — amount from accountant |
+| 33 | Income Tax | Expense | `#D84315` | Quarterly PIT advance payments — amount from accountant |
+| 34 | Accountant | Expense | `#FF7043` | Monthly accounting service fee |
+
+**Business expenses — blue-grey family**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 35 | Business Equipment | Expense | `#37474F` | Laptop, phone, hardware, office furniture, tools |
+| 36 | Business Software | Expense | `#455A64` | SaaS, cloud, hosting, domain, licences |
+| 37 | Business Services | Expense | `#607D8B` | Legal, consulting, subcontractors, notary |
+| 38 | Business Travel | Expense | `#78909C` | Work-related transport, accommodation, meals |
+
+**Financial — grey**
+
+| # | Name | Type | Color | Examples |
+|---|---|---|---|---|
+| 39 | Bank Fees | Expense | `#757575` | Account fees, FX commissions, card fees, wire transfer costs |
+
+## 2026-07-16 — Rich domain model for Phase 1 entities
+Context: The first pass at `Account` / `Category` / `Transaction` was an anemic model — every property publicly settable, no constructors, no validation. Business invariants (non-empty name, non-zero amount, valid color, valid currency, non-future dates) lived only in the EF configuration or nowhere at all. Anyone could `new Transaction { Amount = 0 }` and rely on the DB check constraint to catch it.
+Decision: Every domain entity uses:
+- a private parameterless constructor for EF hydration only,
+- a public static `Create(...)` factory that validates every argument and sets `Id` + `CreatedUtc`,
+- `init` accessors for values that never change (`Id`, audit fields, immutable FKs like `OwnerUserId` and `EnteredByUserId`),
+- `private set` + explicit mutation methods (`Rename`, `Archive`, `ChangeColor`, `Edit`, …) for legitimate state changes,
+- `sealed class`, no domain events, no aggregate roots, no unit-of-work.
+`Transaction` mutation uses a single coarse-grained `Edit(...)` because the UI dialog edits all fields at once.
+Consequences: Object initializers no longer construct valid entities — tests, seed code, and any future service code must go through factories. The `CK_Transaction_AmountNonZero` DB constraint becomes belt-and-braces (kept for defense-in-depth, no dedicated test since no production code path can violate it). Repositories are still not introduced; DI still hands out `HomeFinanceDbContext` directly. If a future requirement needs field-level audit or partial edits, mutation methods can be split — reversing that direction is easier than starting fine-grained.
+
+## 2026-07-16 — Identity user PK stays `string`
+Context: `Account.OwnerUserId` and `Transaction.EnteredByUserId` are `string`, which felt off — GUIDs stored as text, no strong typing.
+Decision: Keep `string`. ASP.NET Core Identity's default `IdentityUser` uses `string Id` (a stringified GUID). Switching to `IdentityUser<Guid>` would ripple through every FK, every migration, `UserManager<T>`, `SignInManager<T>`, and every seeded row — for a two-user app where the FK is opaque anyway. Not worth the churn.
+Consequences: All entities that reference a user hold `string`, not `Guid`. Validation is `ArgumentException.ThrowIfNullOrWhiteSpace`, not `Guid != Guid.Empty`.
