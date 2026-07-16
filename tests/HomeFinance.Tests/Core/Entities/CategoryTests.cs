@@ -1,0 +1,384 @@
+using HomeFinance.Core.Categorization;
+using HomeFinance.Core.Contracts.Categories;
+using HomeFinance.Core.Entities;
+
+namespace HomeFinance.Tests.Core.Entities;
+
+public sealed class CategoryTests
+{
+    // -------------------------------------------------------------------------
+    // Create — happy path
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_MinimalRequest_UsesDefaultCategoryColor()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+
+        Assert.Equal(Colors.DefaultCategory, category.ColorHex);
+    }
+
+    [Fact]
+    public void Create_MinimalRequest_IconIsNull()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+
+        Assert.Null(category.Icon);
+    }
+
+    [Fact]
+    public void Create_ValidRequest_ReturnsWithGeneratedId()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+
+        Assert.NotEqual(Guid.Empty, category.Id);
+    }
+
+    [Fact]
+    public void Create_ValidRequest_SetsCreatedUtcToApproximatelyNow()
+    {
+        var before = DateTime.UtcNow;
+
+        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+
+        var after = DateTime.UtcNow;
+        Assert.InRange(category.CreatedUtc, before, after);
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — null request
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_NullRequest_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => Category.Create(null!));
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — Name validation
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_NameIsNull_ThrowsArgumentException()
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Category.Create(new CreateCategoryRequest { Name = null! }));
+    }
+
+    [Fact]
+    public void Create_NameIsWhiteSpace_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Category.Create(new CreateCategoryRequest { Name = "   " }));
+    }
+
+    [Fact]
+    public void Create_NameExceeds64Chars_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Category.Create(new CreateCategoryRequest { Name = new string('X', 65) }));
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — ColorHex: default fallback
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_ColorHexIsNull_FallsBackToDefaultColor()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            ColorHex = null,
+        });
+
+        Assert.Equal(Colors.DefaultCategory, category.ColorHex);
+    }
+
+    [Fact]
+    public void Create_ColorHexIsWhiteSpace_FallsBackToDefaultColor()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            ColorHex = "   ",
+        });
+
+        Assert.Equal(Colors.DefaultCategory, category.ColorHex);
+    }
+
+    [Fact]
+    public void Create_EmptyStringColorHex_FallsBackToDefaultColor()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            ColorHex = "",
+        });
+
+        Assert.Equal(Colors.DefaultCategory, category.ColorHex);
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — ColorHex: invalid format
+    // -------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("607D8B")]     // missing '#'
+    [InlineData("#607D8")]     // too short
+    [InlineData("#607D8BB")]   // too long
+    [InlineData("#GGGGGG")]    // non-hex characters
+    public void Create_MalformedColorHex_ThrowsArgumentException(string badColor)
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Category.Create(new CreateCategoryRequest
+            {
+                Name = "Food",
+                ColorHex = badColor,
+            }));
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — ColorHex: normalization
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_LowercaseColorHex_NormalizesToUpperCase()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            ColorHex = "#607d8b",
+        });
+
+        Assert.Equal("#607D8B", category.ColorHex);
+    }
+
+    // -------------------------------------------------------------------------
+    // Create — Icon validation
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Create_IconIsNull_StoredAsNull()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            Icon = null,
+        });
+
+        Assert.Null(category.Icon);
+    }
+
+    [Fact]
+    public void Create_IconIsWhiteSpace_StoredAsNull()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            Icon = "   ",
+        });
+
+        Assert.Null(category.Icon);
+    }
+
+    [Fact]
+    public void Create_IconExceeds128Chars_ThrowsArgumentException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            Category.Create(new CreateCategoryRequest
+            {
+                Name = "Food",
+                Icon = new string('i', 129),
+            }));
+    }
+
+    [Fact]
+    public void Create_ValidIconWithSurroundingWhitespace_StoredTrimmed()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            Icon = "  shopping_cart  ",
+        });
+
+        Assert.Equal("shopping_cart", category.Icon);
+    }
+
+    // -------------------------------------------------------------------------
+    // Rename
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Rename_ValidName_ChangesName()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.Rename("Dining");
+
+        Assert.Equal("Dining", category.Name);
+    }
+
+    [Fact]
+    public void Rename_WhiteSpaceName_ThrowsAndLeavesNameUnchanged()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        Assert.Throws<ArgumentException>(() => category.Rename("   "));
+
+        Assert.Equal("Food", category.Name);
+    }
+
+    [Fact]
+    public void Rename_NameExceeds64Chars_ThrowsAndLeavesNameUnchanged()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        Assert.Throws<ArgumentException>(() => category.Rename(new string('Y', 65)));
+
+        Assert.Equal("Food", category.Name);
+    }
+
+    // -------------------------------------------------------------------------
+    // ChangeColor
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ChangeColor_ValidColor_UpdatesColorHex()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.ChangeColor("#FF5733");
+
+        Assert.Equal("#FF5733", category.ColorHex);
+    }
+
+    [Fact]
+    public void ChangeColor_LowercaseColor_NormalizesToUpperCase()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.ChangeColor("#ff5733");
+
+        Assert.Equal("#FF5733", category.ColorHex);
+    }
+
+    [Fact]
+    public void ChangeColor_WhiteSpaceColor_ThrowsArgumentException()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var originalColor = category.ColorHex;
+
+        Assert.Throws<ArgumentException>(() => category.ChangeColor("   "));
+
+        Assert.Equal(originalColor, category.ColorHex);
+    }
+
+    [Fact]
+    public void ChangeColor_MalformedColor_ThrowsArgumentExceptionAndLeavesColorUnchanged()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var originalColor = category.ColorHex;
+
+        Assert.Throws<ArgumentException>(() => category.ChangeColor("607D8B"));
+
+        Assert.Equal(originalColor, category.ColorHex);
+    }
+
+    // -------------------------------------------------------------------------
+    // ChangeIcon
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void ChangeIcon_NullValue_ClearsIcon()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            Icon = "shopping_cart",
+        });
+
+        category.ChangeIcon(null);
+
+        Assert.Null(category.Icon);
+    }
+
+    [Fact]
+    public void ChangeIcon_WhiteSpaceValue_ClearsIcon()
+    {
+        var category = Category.Create(new CreateCategoryRequest
+        {
+            Name = "Food",
+            Icon = "shopping_cart",
+        });
+
+        category.ChangeIcon("   ");
+
+        Assert.Null(category.Icon);
+    }
+
+    [Fact]
+    public void ChangeIcon_ValidValue_StoredTrimmed()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.ChangeIcon("  home  ");
+
+        Assert.Equal("home", category.Icon);
+    }
+
+    [Fact]
+    public void ChangeIcon_ValueExceeds128Chars_ThrowsArgumentException()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        Assert.Throws<ArgumentException>(() => category.ChangeIcon(new string('i', 129)));
+    }
+
+    // -------------------------------------------------------------------------
+    // Archive / Unarchive
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Archive_WhenNotArchived_SetsIsArchivedTrue()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.Archive();
+
+        Assert.True(category.IsArchived);
+    }
+
+    [Fact]
+    public void Archive_WhenAlreadyArchived_IsNoOp()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        category.Archive();
+
+        category.Archive();
+
+        Assert.True(category.IsArchived);
+    }
+
+    [Fact]
+    public void Unarchive_WhenArchived_SetsIsArchivedFalse()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        category.Archive();
+
+        category.Unarchive();
+
+        Assert.False(category.IsArchived);
+    }
+
+    [Fact]
+    public void Unarchive_WhenNotArchived_IsNoOp()
+    {
+        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+
+        category.Unarchive();
+
+        Assert.False(category.IsArchived);
+    }
+}
