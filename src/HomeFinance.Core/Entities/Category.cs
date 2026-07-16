@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using HomeFinance.Core.Categorization;
+using HomeFinance.Core.Contracts.Categories;
 
 namespace HomeFinance.Core.Entities;
 
@@ -21,31 +22,33 @@ public sealed partial class Category
     [GeneratedRegex(@"^#[0-9A-Fa-f]{6}$")]
     private static partial Regex ColorHexRegex();
 
-    public static Category Create(string name, string? colorHex = null, string? icon = null)
+    public static Category Create(CreateCategoryRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        name = name.Trim();
+        ArgumentNullException.ThrowIfNull(request);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Name);
+        var name = request.Name.Trim();
         if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(name));
+            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(request));
 
         string resolvedColor;
-        if (string.IsNullOrWhiteSpace(colorHex))
+        if (string.IsNullOrWhiteSpace(request.ColorHex))
         {
             resolvedColor = Colors.DefaultCategory;
         }
         else
         {
-            if (!ColorHexRegex().IsMatch(colorHex))
-                throw new ArgumentException("ColorHex must be in #RRGGBB format.", nameof(colorHex));
-            resolvedColor = "#" + colorHex[1..].ToUpperInvariant();
+            if (!ColorHexRegex().IsMatch(request.ColorHex))
+                throw new ArgumentException("ColorHex must be in #RRGGBB format.", nameof(request));
+            resolvedColor = "#" + request.ColorHex[1..].ToUpperInvariant();
         }
 
         string? resolvedIcon = null;
-        if (!string.IsNullOrWhiteSpace(icon))
+        if (!string.IsNullOrWhiteSpace(request.Icon))
         {
-            icon = icon.Trim();
+            var icon = request.Icon.Trim();
             if (icon.Length > 128)
-                throw new ArgumentException("Icon must be 128 characters or fewer.", nameof(icon));
+                throw new ArgumentException("Icon must be 128 characters or fewer.", nameof(request));
             resolvedIcon = icon;
         }
 

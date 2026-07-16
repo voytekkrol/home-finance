@@ -66,6 +66,12 @@ Dependency rules:
 - Register services in feature-scoped extension methods (`AddCoreServices`, `AddDataServices`) — do not fatten `Program.cs`.
 - Services are `sealed` and depend on interfaces, not concretes.
 
+**Multi-parameter factories and methods**
+- Any static factory (`Entity.Create`) or mutation method with **two or more parameters** takes a single `sealed record` request DTO instead of positional parameters. Positional args with same-typed neighbors (two `string`s, two `Guid`s) invite swap-argument bugs the compiler cannot catch.
+- Request records live under `src/HomeFinance.Core/Contracts/<Aggregate>/` (e.g. `Contracts/Accounts/CreateAccountRequest.cs`).
+- Use `required` on properties that must be set; `init` so they can only be assigned via object initializer. Callers use `Account.Create(new CreateAccountRequest { Name = "...", ... })`.
+- Single-parameter methods (`Rename(string)`, `ChangeColor(string)`, `Archive()`) stay direct — no request DTO needed.
+
 ## 5. Build & test commands
 
 Run from repo root:

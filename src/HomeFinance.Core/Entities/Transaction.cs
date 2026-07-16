@@ -1,3 +1,5 @@
+using HomeFinance.Core.Contracts.Transactions;
+
 namespace HomeFinance.Core.Entities;
 
 public sealed class Transaction
@@ -19,52 +21,42 @@ public sealed class Transaction
     public Account Account { get; private set; } = null!;
     public Category Category { get; private set; } = null!;
 
-    public static Transaction Create(
-        DateOnly occurredOn,
-        decimal amount,
-        string description,
-        Guid accountId,
-        Guid categoryId,
-        string enteredByUserId)
+    public static Transaction Create(CreateTransactionRequest request)
     {
-        if (occurredOn > DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1))
-            throw new ArgumentOutOfRangeException(nameof(occurredOn), "OccurredOn cannot be more than one day in the future.");
-
-        if (amount == 0m)
-            throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be non-zero.");
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(description);
-        description = description.Trim();
-        if (description.Length > 256)
-            throw new ArgumentException("Description must be 256 characters or fewer.", nameof(description));
-
-        if (accountId == Guid.Empty)
-            throw new ArgumentException("AccountId is required.", nameof(accountId));
-
-        if (categoryId == Guid.Empty)
-            throw new ArgumentException("CategoryId is required.", nameof(categoryId));
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(enteredByUserId);
+        ArgumentNullException.ThrowIfNull(request);
+        var description = ValidateEditableFields(
+            request.OccurredOn, request.Amount, request.Description, request.AccountId, request.CategoryId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.EnteredByUserId);
 
         return new Transaction
         {
             Id = Guid.NewGuid(),
-            OccurredOn = occurredOn,
-            Amount = amount,
+            OccurredOn = request.OccurredOn,
+            Amount = request.Amount,
             Description = description,
-            AccountId = accountId,
-            CategoryId = categoryId,
-            EnteredByUserId = enteredByUserId,
+            AccountId = request.AccountId,
+            CategoryId = request.CategoryId,
+            EnteredByUserId = request.EnteredByUserId,
             CreatedUtc = DateTime.UtcNow,
         };
     }
 
-    public void Edit(
-        DateOnly occurredOn,
-        decimal amount,
-        string description,
-        Guid accountId,
-        Guid categoryId)
+    public void Edit(EditTransactionRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var description = ValidateEditableFields(
+            request.OccurredOn, request.Amount, request.Description, request.AccountId, request.CategoryId);
+
+        OccurredOn = request.OccurredOn;
+        Amount = request.Amount;
+        Description = description;
+        AccountId = request.AccountId;
+        CategoryId = request.CategoryId;
+        UpdatedUtc = DateTime.UtcNow;
+    }
+
+    private static string ValidateEditableFields(
+        DateOnly occurredOn, decimal amount, string description, Guid accountId, Guid categoryId)
     {
         if (occurredOn > DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1))
             throw new ArgumentOutOfRangeException(nameof(occurredOn), "OccurredOn cannot be more than one day in the future.");
@@ -73,8 +65,8 @@ public sealed class Transaction
             throw new ArgumentOutOfRangeException(nameof(amount), "Amount must be non-zero.");
 
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
-        description = description.Trim();
-        if (description.Length > 256)
+        var trimmed = description.Trim();
+        if (trimmed.Length > 256)
             throw new ArgumentException("Description must be 256 characters or fewer.", nameof(description));
 
         if (accountId == Guid.Empty)
@@ -83,11 +75,6 @@ public sealed class Transaction
         if (categoryId == Guid.Empty)
             throw new ArgumentException("CategoryId is required.", nameof(categoryId));
 
-        OccurredOn = occurredOn;
-        Amount = amount;
-        Description = description;
-        AccountId = accountId;
-        CategoryId = categoryId;
-        UpdatedUtc = DateTime.UtcNow;
+        return trimmed;
     }
 }

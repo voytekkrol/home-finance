@@ -172,3 +172,11 @@ Consequences: Object initializers no longer construct valid entities — tests, 
 Context: `Account.OwnerUserId` and `Transaction.EnteredByUserId` are `string`, which felt off — GUIDs stored as text, no strong typing.
 Decision: Keep `string`. ASP.NET Core Identity's default `IdentityUser` uses `string Id` (a stringified GUID). Switching to `IdentityUser<Guid>` would ripple through every FK, every migration, `UserManager<T>`, `SignInManager<T>`, and every seeded row — for a two-user app where the FK is opaque anyway. Not worth the churn.
 Consequences: All entities that reference a user hold `string`, not `Guid`. Validation is `ArgumentException.ThrowIfNullOrWhiteSpace`, not `Guid != Guid.Empty`.
+
+## 2026-07-16 — Request DTOs for multi-parameter factories and mutations
+Context: `Account.Create(string name, string ownerUserId, AccountType type, string currency, decimal openingBalance)` — five positional parameters, three of them `string`, in a swap-friendly order. C# named arguments help at the call site but are not enforced; a caller can trivially pass `Account.Create(ownerUserId, name, ...)` and the compiler stays silent. `Transaction.Create` and `Transaction.Edit` had the same shape and the same risk.
+Decision: Any factory (`Entity.Create`) or mutation method taking two or more parameters takes a single `sealed record` request DTO with `required init` properties. Callers must use object initializer syntax, forcing named-property assignment.
+- `CreateAccountRequest`, `CreateCategoryRequest`, `CreateTransactionRequest`, `EditTransactionRequest` live in `src/HomeFinance.Core/Contracts/<Aggregate>/`.
+- Single-parameter methods (`Rename(string)`, `ChangeColor(string)`, `Archive()`) stay direct — no DTO needed when there's nothing to swap.
+- Rule applies to future entities and service methods, not just Phase 1.
+Consequences: Slightly more typing at call sites, in exchange for compiler-verifiable named argument passing. Test-writer's factory tests construct request objects; the seeder in Slice 2 does the same. If future update/patch methods need only a subset of fields, they get their own request type (`EditTransactionRequest` omits `EnteredByUserId` because it is immutable).

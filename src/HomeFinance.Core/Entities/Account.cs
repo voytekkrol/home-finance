@@ -1,3 +1,5 @@
+using HomeFinance.Core.Contracts.Accounts;
+
 namespace HomeFinance.Core.Entities;
 
 public sealed class Account
@@ -17,36 +19,33 @@ public sealed class Account
     public DateTime CreatedUtc { get; init; }
     public IReadOnlyCollection<Transaction> Transactions => _transactions;
 
-    public static Account Create(
-        string name,
-        string ownerUserId,
-        AccountType type,
-        string currency,
-        decimal openingBalance)
+    public static Account Create(CreateAccountRequest request)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        name = name.Trim();
+        ArgumentNullException.ThrowIfNull(request);
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Name);
+        var name = request.Name.Trim();
         if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(name));
+            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(request));
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(ownerUserId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.OwnerUserId);
 
-        if (!Enum.IsDefined(type))
-            throw new ArgumentOutOfRangeException(nameof(type));
+        if (!Enum.IsDefined(request.Type))
+            throw new ArgumentOutOfRangeException(nameof(request), request.Type, "Invalid AccountType.");
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(currency);
-        currency = currency.Trim().ToUpperInvariant();
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Currency);
+        var currency = request.Currency.Trim().ToUpperInvariant();
         if (currency.Length != 3 || !currency.All(c => c is >= 'A' and <= 'Z'))
-            throw new ArgumentException("Currency must be an ISO-4217 three-letter code.", nameof(currency));
+            throw new ArgumentException("Currency must be an ISO-4217 three-letter code.", nameof(request));
 
         return new Account
         {
             Id = Guid.NewGuid(),
             Name = name,
-            OwnerUserId = ownerUserId,
-            Type = type,
+            OwnerUserId = request.OwnerUserId,
+            Type = request.Type,
             Currency = currency,
-            OpeningBalance = openingBalance,
+            OpeningBalance = request.OpeningBalance,
             CreatedUtc = DateTime.UtcNow,
         };
     }
