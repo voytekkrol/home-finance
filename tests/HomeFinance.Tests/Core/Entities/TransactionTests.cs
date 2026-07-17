@@ -44,7 +44,7 @@ public sealed class TransactionTests
     public void Create_ValidRequest_PopulatesAllFieldsFromRequest()
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var request = new CreateTransactionRequest
+        var request = new CreateTransactionData
         {
             OccurredOn = today,
             Amount = -75.00m,
@@ -86,7 +86,7 @@ public sealed class TransactionTests
             OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2),
         };
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { Amount = 0m };
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { Description = "   " };
 
-        Assert.Throws<ArgumentException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { Description = new string('D', 257) };
 
-        Assert.Throws<ArgumentException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { AccountId = Guid.Empty };
 
-        Assert.Throws<ArgumentException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { CategoryId = Guid.Empty };
 
-        Assert.Throws<ArgumentException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     // -------------------------------------------------------------------------
@@ -222,7 +222,7 @@ public sealed class TransactionTests
     {
         var request = ValidCreateRequest() with { EnteredByUserId = "   " };
 
-        Assert.Throws<ArgumentException>(() => Transaction.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
     }
 
     // -------------------------------------------------------------------------
@@ -237,7 +237,7 @@ public sealed class TransactionTests
         var newCategoryId = Guid.NewGuid();
         var newDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
-        transaction.Edit(new EditTransactionRequest
+        transaction.Edit(new EditTransactionData
         {
             OccurredOn = newDate,
             Amount = 200m,
@@ -275,7 +275,7 @@ public sealed class TransactionTests
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             transaction.Edit(ValidEditRequest() with { Amount = 0m }));
     }
 
@@ -284,7 +284,7 @@ public sealed class TransactionTests
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             transaction.Edit(ValidEditRequest() with
             {
                 OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2),
@@ -296,7 +296,7 @@ public sealed class TransactionTests
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             transaction.Edit(ValidEditRequest() with { Description = "   " }));
     }
 
@@ -305,7 +305,7 @@ public sealed class TransactionTests
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             transaction.Edit(ValidEditRequest() with { AccountId = Guid.Empty }));
     }
 
@@ -314,7 +314,7 @@ public sealed class TransactionTests
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             transaction.Edit(ValidEditRequest() with { CategoryId = Guid.Empty }));
     }
 
@@ -338,7 +338,7 @@ public sealed class TransactionTests
         {
             transaction.Edit(ValidEditRequest() with { Amount = 0m });
         }
-        catch (ArgumentOutOfRangeException)
+        catch (ArgumentException)
         {
             // expected
         }
@@ -355,7 +355,7 @@ public sealed class TransactionTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static CreateTransactionRequest ValidCreateRequest() =>
+    private static CreateTransactionData ValidCreateRequest() =>
         new()
         {
             OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -366,7 +366,7 @@ public sealed class TransactionTests
             EnteredByUserId = SomeUserId,
         };
 
-    private static EditTransactionRequest ValidEditRequest() =>
+    private static EditTransactionData ValidEditRequest() =>
         new()
         {
             OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow),

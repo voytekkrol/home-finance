@@ -24,7 +24,7 @@ public static class TestBed
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
 
-        var user = ApplicationUser.Create(new CreateApplicationUserRequest
+        var user = ApplicationUser.Create(new ApplicationUserData
         {
             UserName = $"user_{suffix}",
             DisplayName = $"User {suffix}",
@@ -55,7 +55,7 @@ public static class TestBed
     {
         name ??= $"Account_{Guid.NewGuid().ToString("N")[..8]}";
 
-        var account = Account.Create(new CreateAccountRequest
+        var account = Account.Create(new AccountData
         {
             Name = name,
             OwnerUserId = ownerUserId,
@@ -78,7 +78,7 @@ public static class TestBed
     {
         name ??= $"Category_{Guid.NewGuid().ToString("N")[..8]}";
 
-        var category = Category.Create(new CreateCategoryRequest { Name = name });
+        var category = Category.Create(new CategoryData { Name = name });
 
         ctx.Categories.Add(category);
         ctx.SaveChanges();
@@ -97,7 +97,7 @@ public static class TestBed
         string enteredByUserId,
         decimal amount = -50m)
     {
-        var transaction = Transaction.Create(new CreateTransactionRequest
+        var transaction = Transaction.Create(new CreateTransactionData
         {
             OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow),
             Amount = amount,

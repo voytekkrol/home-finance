@@ -1,6 +1,6 @@
 namespace HomeFinance.Core.Contracts.Transactions;
 
-public sealed record CreateTransactionRequest
+public sealed record CreateTransactionData
 {
     public required DateOnly OccurredOn { get; init; }
     public required decimal Amount { get; init; }

@@ -34,7 +34,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_ValidRequest_PopulatesAllFieldsFromRequest()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "My Account",
             OwnerUserId = "user-1",
@@ -85,7 +85,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_NameIsNull_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = null!,
             OwnerUserId = "user-1",
@@ -99,7 +99,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_NameIsWhiteSpace_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "   ",
             OwnerUserId = "user-1",
@@ -107,13 +107,13 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_NameExceeds64Chars_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = new string('A', 65),
             OwnerUserId = "user-1",
@@ -121,13 +121,13 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_NameWithSurroundingWhitespace_IsTrimmed()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "  My Account  ",
             OwnerUserId = "user-1",
@@ -147,7 +147,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_OwnerUserIdIsNull_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = null!,
@@ -161,7 +161,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_OwnerUserIdIsWhiteSpace_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "  ",
@@ -169,7 +169,7 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     // -------------------------------------------------------------------------
@@ -179,7 +179,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_UndefinedAccountType_ThrowsArgumentOutOfRangeException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -187,7 +187,7 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     // -------------------------------------------------------------------------
@@ -197,7 +197,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_CurrencyIsNull_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -211,7 +211,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_CurrencyIsWhiteSpace_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -219,13 +219,13 @@ public sealed class AccountTests
             Currency = "   ",
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_CurrencyFewerThan3Chars_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -233,13 +233,13 @@ public sealed class AccountTests
             Currency = "PL",
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_CurrencyMoreThan3Chars_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -247,13 +247,13 @@ public sealed class AccountTests
             Currency = "PLNN",
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_CurrencyContainsNonLetter_ThrowsArgumentException()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -261,13 +261,13 @@ public sealed class AccountTests
             Currency = "PL1",
         };
 
-        Assert.Throws<ArgumentException>(() => Account.Create(request));
+        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
     }
 
     [Fact]
     public void Create_LowercaseCurrency_NormalizesToUpperCase()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Account",
             OwnerUserId = "user-1",
@@ -287,7 +287,7 @@ public sealed class AccountTests
     [Fact]
     public void Create_NegativeOpeningBalance_IsAccepted()
     {
-        var request = new CreateAccountRequest
+        var request = new AccountData
         {
             Name = "Credit Card",
             OwnerUserId = "user-1",
@@ -321,7 +321,7 @@ public sealed class AccountTests
         var account = Account.Create(ValidRequest());
         var originalName = account.Name;
 
-        Assert.Throws<ArgumentException>(() => account.Rename("   "));
+        Assert.ThrowsAny<ArgumentException>(() => account.Rename("   "));
 
         Assert.Equal(originalName, account.Name);
     }
@@ -332,7 +332,7 @@ public sealed class AccountTests
         var account = Account.Create(ValidRequest());
         var originalName = account.Name;
 
-        Assert.Throws<ArgumentException>(() => account.Rename(new string('B', 65)));
+        Assert.ThrowsAny<ArgumentException>(() => account.Rename(new string('B', 65)));
 
         Assert.Equal(originalName, account.Name);
     }
@@ -387,7 +387,7 @@ public sealed class AccountTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static CreateAccountRequest ValidRequest() =>
+    private static AccountData ValidRequest() =>
         new()
         {
             Name = "Test Account",

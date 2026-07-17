@@ -2,7 +2,7 @@ using HomeFinance.Core.Entities;
 
 namespace HomeFinance.Core.Contracts.Accounts;
 
-public sealed record CreateAccountRequest
+public sealed record AccountData
 {
     public required string Name { get; init; }
     public required string OwnerUserId { get; init; }

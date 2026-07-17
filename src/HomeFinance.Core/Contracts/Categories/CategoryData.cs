@@ -1,6 +1,6 @@
 namespace HomeFinance.Core.Contracts.Categories;
 
-public sealed record CreateCategoryRequest
+public sealed record CategoryData
 {
     public required string Name { get; init; }
     public string? ColorHex { get; init; }

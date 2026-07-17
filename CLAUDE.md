@@ -67,10 +67,54 @@ Dependency rules:
 - Services are `sealed` and depend on interfaces, not concretes.
 
 **Multi-parameter factories and methods**
-- Any static factory (`Entity.Create`) or mutation method with **two or more parameters** takes a single `sealed record` request DTO instead of positional parameters. Positional args with same-typed neighbors (two `string`s, two `Guid`s) invite swap-argument bugs the compiler cannot catch.
-- Request records live under `src/HomeFinance.Core/Contracts/<Aggregate>/` (e.g. `Contracts/Accounts/CreateAccountRequest.cs`).
-- Use `required` on properties that must be set; `init` so they can only be assigned via object initializer. Callers use `Account.Create(new CreateAccountRequest { Name = "...", ... })`.
-- Single-parameter methods (`Rename(string)`, `ChangeColor(string)`, `Archive()`) stay direct — no request DTO needed.
+- Any static factory (`Entity.Create`) or mutation method with **two or more parameters** takes a single `sealed record` data DTO instead of positional parameters. Positional args with same-typed neighbors (two `string`s, two `Guid`s) invite swap-argument bugs the compiler cannot catch.
+- Naming: no `Request` suffix (that belongs to the web/HTTP layer).
+  - Single write shape for an aggregate → `<Entity>Data` (`AccountData`, `CategoryData`, `ApplicationUserData`).
+  - Multiple write shapes → prefix with the entity method verb: `CreateTransactionData` (for `Transaction.Create`), `EditTransactionData` (for `Transaction.Edit`). A future `Update` method would use `Update<Entity>Data`.
+- Records live under `src/HomeFinance.Core/Contracts/<Aggregate>/` (e.g. `Contracts/Accounts/AccountData.cs`).
+- Use `required` on properties that must be set; `init` so they can only be assigned via object initializer. Callers use `Account.Create(new AccountData { Name = "...", ... })`.
+- Single-parameter methods (`Rename(string)`, `ChangeColor(string)`, `Archive()`) stay direct — no data record needed.
+
+**Domain validation**
+1. Every data record has a paired **static validator** — `<Record>Validator` — in the same folder as the record. Its one entry point is `Invoke(<Record> data) => <Record>`, returning the *normalized* record (trimmed strings, upper-cased currency/hex, etc.). No other public members.
+2. The entity's `Create` / `Edit` calls the validator once, then assigns fields straight from the normalized data. No inline `if (…) throw`, no per-property `ArgumentException.ThrowIfNullOrWhiteSpace` inside factories or mutation methods, no private `Validate…` helpers.
+3. Atomic rule helpers live in `src/HomeFinance.Core/Validation/Rules.cs` — one static method per rule (`RequireLabel`, `RequireOptionalLabel`, `RequireIsoCurrencyCode`, `RequireHexColor`, `RequireDefined<TEnum>`, `RequireIdentityUserId`, `RequireNonEmptyGuid`, `RequireNonZero`, `RequireNotFarFuture`). Each returns the normalized value; each throws a dedicated exception on failure. Extend `Rules` when a new rule appears — never re-implement the same rule inline.
+4. **Exceptions are dedicated, strongly typed, const-messaged.** All under `src/HomeFinance.Core/Validation/`, all `sealed`, all inherit `DomainValidationException : ArgumentException`. Each defines `public const string Message = "..."` and passes it (plus `paramName`) to the base ctor. Types: `MissingRequiredValueException`, `LabelTooLongException`, `InvalidCurrencyCodeException`, `InvalidHexColorException`, `InvalidEnumValueException`, `InvalidIdentityUserIdException`, `EmptyGuidException`, `ZeroAmountException`, `FutureDateException`. Tests assert on exception *type* (and `paramName` where relevant), not on message substrings.
+
+Shape of a factory:
+
+```csharp
+public static Account Create(AccountData data)
+{
+    ArgumentNullException.ThrowIfNull(data);
+    data = AccountDataValidator.Invoke(data);
+    return new Account
+    {
+        Id = Guid.NewGuid(),
+        Name = data.Name,
+        OwnerUserId = data.OwnerUserId,
+        Type = data.Type,
+        Currency = data.Currency,
+        OpeningBalance = data.OpeningBalance,
+        CreatedUtc = DateTime.UtcNow,
+    };
+}
+```
+
+Shape of a validator:
+
+```csharp
+public static class AccountDataValidator
+{
+    public static AccountData Invoke(AccountData data) => data with
+    {
+        Name = Rules.RequireLabel(data.Name, maxLength: 64, nameof(data.Name)),
+        OwnerUserId = Rules.RequireIdentityUserId(data.OwnerUserId, nameof(data.OwnerUserId)),
+        Type = Rules.RequireDefined(data.Type, nameof(data.Type)),
+        Currency = Rules.RequireIsoCurrencyCode(data.Currency, nameof(data.Currency)),
+    };
+}
+```
 
 ## 5. Build & test commands
 

@@ -1,4 +1,5 @@
 using HomeFinance.Core.Contracts.Accounts;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Core.Entities;
 
@@ -19,45 +20,25 @@ public sealed class Account
     public DateTime CreatedUtc { get; init; }
     public IReadOnlyCollection<Transaction> Transactions => _transactions;
 
-    public static Account Create(CreateAccountRequest request)
+    public static Account Create(AccountData data)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.Name);
-        var name = request.Name.Trim();
-        if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(request));
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.OwnerUserId);
-
-        if (!Enum.IsDefined(request.Type))
-            throw new ArgumentOutOfRangeException(nameof(request), request.Type, "Invalid AccountType.");
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.Currency);
-        var currency = request.Currency.Trim().ToUpperInvariant();
-        if (currency.Length != 3 || !currency.All(c => c is >= 'A' and <= 'Z'))
-            throw new ArgumentException("Currency must be an ISO-4217 three-letter code.", nameof(request));
-
+        ArgumentNullException.ThrowIfNull(data);
+        data = AccountDataValidator.Invoke(data);
         return new Account
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            OwnerUserId = request.OwnerUserId,
-            Type = request.Type,
-            Currency = currency,
-            OpeningBalance = request.OpeningBalance,
+            Name = data.Name,
+            OwnerUserId = data.OwnerUserId,
+            Type = data.Type,
+            Currency = data.Currency,
+            OpeningBalance = data.OpeningBalance,
             CreatedUtc = DateTime.UtcNow,
         };
     }
 
     public void Rename(string name)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        name = name.Trim();
-        if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(name));
-
-        Name = name;
+        Name = Rules.RequireLabel(name, 64, nameof(name));
     }
 
     public void Archive()

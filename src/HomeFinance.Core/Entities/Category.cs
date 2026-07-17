@@ -1,9 +1,9 @@
-using System.Text.RegularExpressions;
-using HomeFinance.Core.Categorization;
+using HomeFinance.Core.Contracts.Categories;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Core.Entities;
 
-public sealed partial class Category
+public sealed class Category
 {
     private List<Transaction> _transactions = [];
 
@@ -18,79 +18,34 @@ public sealed partial class Category
     public DateTime CreatedUtc { get; init; }
     public IReadOnlyCollection<Transaction> Transactions => _transactions;
 
-    [GeneratedRegex(@"^#[0-9A-Fa-f]{6}$")]
-    private static partial Regex ColorHexRegex();
-
-    public static Category Create(string name, string? colorHex = null, string? icon = null)
+    public static Category Create(CategoryData data)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        name = name.Trim();
-        if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(name));
-
-        string resolvedColor;
-        if (string.IsNullOrWhiteSpace(colorHex))
-        {
-            resolvedColor = Colors.DefaultCategory;
-        }
-        else
-        {
-            if (!ColorHexRegex().IsMatch(colorHex))
-                throw new ArgumentException("ColorHex must be in #RRGGBB format.", nameof(colorHex));
-            resolvedColor = "#" + colorHex[1..].ToUpperInvariant();
-        }
-
-        string? resolvedIcon = null;
-        if (!string.IsNullOrWhiteSpace(icon))
-        {
-            icon = icon.Trim();
-            if (icon.Length > 128)
-                throw new ArgumentException("Icon must be 128 characters or fewer.", nameof(icon));
-            resolvedIcon = icon;
-        }
-
+        ArgumentNullException.ThrowIfNull(data);
+        data = CategoryDataValidator.Invoke(data);
         return new Category
         {
             Id = Guid.NewGuid(),
-            Name = name,
-            ColorHex = resolvedColor,
-            Icon = resolvedIcon,
+            Name = data.Name,
+            // CategoryDataValidator always sets ColorHex to a non-null value (default or validated).
+            ColorHex = data.ColorHex!,
+            Icon = data.Icon,
             CreatedUtc = DateTime.UtcNow,
         };
     }
 
     public void Rename(string name)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        name = name.Trim();
-        if (name.Length > 64)
-            throw new ArgumentException("Name must be 64 characters or fewer.", nameof(name));
-
-        Name = name;
+        Name = Rules.RequireLabel(name, 64, nameof(name));
     }
 
     public void ChangeColor(string colorHex)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(colorHex);
-        if (!ColorHexRegex().IsMatch(colorHex))
-            throw new ArgumentException("ColorHex must be in #RRGGBB format.", nameof(colorHex));
-
-        ColorHex = "#" + colorHex[1..].ToUpperInvariant();
+        ColorHex = Rules.RequireHexColor(colorHex, nameof(colorHex));
     }
 
     public void ChangeIcon(string? icon)
     {
-        if (string.IsNullOrWhiteSpace(icon))
-        {
-            Icon = null;
-            return;
-        }
-
-        icon = icon.Trim();
-        if (icon.Length > 128)
-            throw new ArgumentException("Icon must be 128 characters or fewer.", nameof(icon));
-
-        Icon = icon;
+        Icon = Rules.RequireOptionalLabel(icon, 128, nameof(icon));
     }
 
     public void Archive()

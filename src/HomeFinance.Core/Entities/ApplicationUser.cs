@@ -1,4 +1,5 @@
 using HomeFinance.Core.Contracts.Users;
+using HomeFinance.Core.Validation;
 using Microsoft.AspNetCore.Identity;
 
 namespace HomeFinance.Core.Entities;
@@ -10,31 +11,19 @@ public sealed class ApplicationUser : IdentityUser
 
     public string DisplayName { get; private set; } = string.Empty;
 
-    public static ApplicationUser Create(CreateApplicationUserRequest request)
+    public static ApplicationUser Create(ApplicationUserData data)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.UserName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.DisplayName);
-
-        var displayName = request.DisplayName.Trim();
-        if (displayName.Length > 64)
-            throw new ArgumentException("DisplayName must be 64 characters or fewer.", nameof(request));
-
+        ArgumentNullException.ThrowIfNull(data);
+        data = ApplicationUserDataValidator.Invoke(data);
         return new ApplicationUser
         {
-            UserName = request.UserName.Trim(),
-            DisplayName = displayName,
+            UserName = data.UserName,
+            DisplayName = data.DisplayName,
         };
     }
 
     public void Rename(string displayName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
-        displayName = displayName.Trim();
-        if (displayName.Length > 64)
-            throw new ArgumentException("DisplayName must be 64 characters or fewer.", nameof(displayName));
-
-        DisplayName = displayName;
+        DisplayName = Rules.RequireLabel(displayName, 64, nameof(displayName));
     }
 }

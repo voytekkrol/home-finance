@@ -13,7 +13,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_MinimalRequest_UsesDefaultCategoryColor()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+        var category = Category.Create(new CategoryData { Name = "Groceries" });
 
         Assert.Equal(Colors.DefaultCategory, category.ColorHex);
     }
@@ -21,7 +21,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_MinimalRequest_IconIsNull()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+        var category = Category.Create(new CategoryData { Name = "Groceries" });
 
         Assert.Null(category.Icon);
     }
@@ -29,7 +29,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_ValidRequest_ReturnsWithGeneratedId()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+        var category = Category.Create(new CategoryData { Name = "Groceries" });
 
         Assert.NotEqual(Guid.Empty, category.Id);
     }
@@ -39,7 +39,7 @@ public sealed class CategoryTests
     {
         var before = DateTime.UtcNow;
 
-        var category = Category.Create(new CreateCategoryRequest { Name = "Groceries" });
+        var category = Category.Create(new CategoryData { Name = "Groceries" });
 
         var after = DateTime.UtcNow;
         Assert.InRange(category.CreatedUtc, before, after);
@@ -63,21 +63,21 @@ public sealed class CategoryTests
     public void Create_NameIsNull_ThrowsArgumentException()
     {
         Assert.ThrowsAny<ArgumentException>(() =>
-            Category.Create(new CreateCategoryRequest { Name = null! }));
+            Category.Create(new CategoryData { Name = null! }));
     }
 
     [Fact]
     public void Create_NameIsWhiteSpace_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            Category.Create(new CreateCategoryRequest { Name = "   " }));
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Category.Create(new CategoryData { Name = "   " }));
     }
 
     [Fact]
     public void Create_NameExceeds64Chars_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            Category.Create(new CreateCategoryRequest { Name = new string('X', 65) }));
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Category.Create(new CategoryData { Name = new string('X', 65) }));
     }
 
     // -------------------------------------------------------------------------
@@ -87,7 +87,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_ColorHexIsNull_FallsBackToDefaultColor()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             ColorHex = null,
@@ -99,7 +99,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_ColorHexIsWhiteSpace_FallsBackToDefaultColor()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             ColorHex = "   ",
@@ -111,7 +111,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_EmptyStringColorHex_FallsBackToDefaultColor()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             ColorHex = "",
@@ -131,8 +131,8 @@ public sealed class CategoryTests
     [InlineData("#GGGGGG")]    // non-hex characters
     public void Create_MalformedColorHex_ThrowsArgumentException(string badColor)
     {
-        Assert.Throws<ArgumentException>(() =>
-            Category.Create(new CreateCategoryRequest
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Category.Create(new CategoryData
             {
                 Name = "Food",
                 ColorHex = badColor,
@@ -146,7 +146,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_LowercaseColorHex_NormalizesToUpperCase()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             ColorHex = "#607d8b",
@@ -162,7 +162,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_IconIsNull_StoredAsNull()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             Icon = null,
@@ -174,7 +174,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_IconIsWhiteSpace_StoredAsNull()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             Icon = "   ",
@@ -186,8 +186,8 @@ public sealed class CategoryTests
     [Fact]
     public void Create_IconExceeds128Chars_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            Category.Create(new CreateCategoryRequest
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Category.Create(new CategoryData
             {
                 Name = "Food",
                 Icon = new string('i', 129),
@@ -197,7 +197,7 @@ public sealed class CategoryTests
     [Fact]
     public void Create_ValidIconWithSurroundingWhitespace_StoredTrimmed()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             Icon = "  shopping_cart  ",
@@ -213,7 +213,7 @@ public sealed class CategoryTests
     [Fact]
     public void Rename_ValidName_ChangesName()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.Rename("Dining");
 
@@ -223,9 +223,9 @@ public sealed class CategoryTests
     [Fact]
     public void Rename_WhiteSpaceName_ThrowsAndLeavesNameUnchanged()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.Throws<ArgumentException>(() => category.Rename("   "));
+        Assert.ThrowsAny<ArgumentException>(() => category.Rename("   "));
 
         Assert.Equal("Food", category.Name);
     }
@@ -233,9 +233,9 @@ public sealed class CategoryTests
     [Fact]
     public void Rename_NameExceeds64Chars_ThrowsAndLeavesNameUnchanged()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.Throws<ArgumentException>(() => category.Rename(new string('Y', 65)));
+        Assert.ThrowsAny<ArgumentException>(() => category.Rename(new string('Y', 65)));
 
         Assert.Equal("Food", category.Name);
     }
@@ -247,7 +247,7 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeColor_ValidColor_UpdatesColorHex()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.ChangeColor("#FF5733");
 
@@ -257,7 +257,7 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeColor_LowercaseColor_NormalizesToUpperCase()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.ChangeColor("#ff5733");
 
@@ -267,10 +267,10 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeColor_WhiteSpaceColor_ThrowsArgumentException()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
         var originalColor = category.ColorHex;
 
-        Assert.Throws<ArgumentException>(() => category.ChangeColor("   "));
+        Assert.ThrowsAny<ArgumentException>(() => category.ChangeColor("   "));
 
         Assert.Equal(originalColor, category.ColorHex);
     }
@@ -278,10 +278,10 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeColor_MalformedColor_ThrowsArgumentExceptionAndLeavesColorUnchanged()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
         var originalColor = category.ColorHex;
 
-        Assert.Throws<ArgumentException>(() => category.ChangeColor("607D8B"));
+        Assert.ThrowsAny<ArgumentException>(() => category.ChangeColor("607D8B"));
 
         Assert.Equal(originalColor, category.ColorHex);
     }
@@ -293,7 +293,7 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeIcon_NullValue_ClearsIcon()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             Icon = "shopping_cart",
@@ -307,7 +307,7 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeIcon_WhiteSpaceValue_ClearsIcon()
     {
-        var category = Category.Create(new CreateCategoryRequest
+        var category = Category.Create(new CategoryData
         {
             Name = "Food",
             Icon = "shopping_cart",
@@ -321,7 +321,7 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeIcon_ValidValue_StoredTrimmed()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.ChangeIcon("  home  ");
 
@@ -331,9 +331,9 @@ public sealed class CategoryTests
     [Fact]
     public void ChangeIcon_ValueExceeds128Chars_ThrowsArgumentException()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.Throws<ArgumentException>(() => category.ChangeIcon(new string('i', 129)));
+        Assert.ThrowsAny<ArgumentException>(() => category.ChangeIcon(new string('i', 129)));
     }
 
     // -------------------------------------------------------------------------
@@ -343,7 +343,7 @@ public sealed class CategoryTests
     [Fact]
     public void Archive_WhenNotArchived_SetsIsArchivedTrue()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.Archive();
 
@@ -353,7 +353,7 @@ public sealed class CategoryTests
     [Fact]
     public void Archive_WhenAlreadyArchived_IsNoOp()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
         category.Archive();
 
         category.Archive();
@@ -364,7 +364,7 @@ public sealed class CategoryTests
     [Fact]
     public void Unarchive_WhenArchived_SetsIsArchivedFalse()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
         category.Archive();
 
         category.Unarchive();
@@ -375,7 +375,7 @@ public sealed class CategoryTests
     [Fact]
     public void Unarchive_WhenNotArchived_IsNoOp()
     {
-        var category = Category.Create(new CreateCategoryRequest { Name = "Food" });
+        var category = Category.Create(new CategoryData { Name = "Food" });
 
         category.Unarchive();
 

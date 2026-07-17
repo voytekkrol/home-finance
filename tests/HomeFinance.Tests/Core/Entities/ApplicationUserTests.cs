@@ -28,7 +28,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_DisplayNameWithSurroundingWhitespace_IsTrimmed()
     {
-        var user = ApplicationUser.Create(new CreateApplicationUserRequest
+        var user = ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = "  Alice  ",
@@ -40,7 +40,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_UserNameWithSurroundingWhitespace_IsTrimmed()
     {
-        var user = ApplicationUser.Create(new CreateApplicationUserRequest
+        var user = ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "  alice  ",
             DisplayName = "Alice",
@@ -66,7 +66,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_UserNameIsNull_ThrowsArgumentException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new CreateApplicationUserRequest
+        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = null!,
             DisplayName = "Alice",
@@ -76,7 +76,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_UserNameIsWhiteSpace_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => ApplicationUser.Create(new CreateApplicationUserRequest
+        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "   ",
             DisplayName = "Alice",
@@ -90,7 +90,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_DisplayNameIsNull_ThrowsArgumentException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new CreateApplicationUserRequest
+        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = null!,
@@ -100,7 +100,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_DisplayNameIsWhiteSpace_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => ApplicationUser.Create(new CreateApplicationUserRequest
+        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = "   ",
@@ -110,7 +110,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_DisplayNameExceeds64Chars_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() => ApplicationUser.Create(new CreateApplicationUserRequest
+        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = new string('A', 65),
@@ -120,7 +120,7 @@ public sealed class ApplicationUserTests
     [Fact]
     public void Create_DisplayNameExactly64Chars_Succeeds()
     {
-        var user = ApplicationUser.Create(new CreateApplicationUserRequest
+        var user = ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = new string('A', 64),
@@ -167,7 +167,7 @@ public sealed class ApplicationUserTests
         var user = ApplicationUser.Create(ValidRequest());
         var original = user.DisplayName;
 
-        Assert.Throws<ArgumentException>(() => user.Rename("   "));
+        Assert.ThrowsAny<ArgumentException>(() => user.Rename("   "));
 
         Assert.Equal(original, user.DisplayName);
     }
@@ -178,7 +178,7 @@ public sealed class ApplicationUserTests
         var user = ApplicationUser.Create(ValidRequest());
         var original = user.DisplayName;
 
-        Assert.Throws<ArgumentException>(() => user.Rename(new string('B', 65)));
+        Assert.ThrowsAny<ArgumentException>(() => user.Rename(new string('B', 65)));
 
         Assert.Equal(original, user.DisplayName);
     }
@@ -187,7 +187,7 @@ public sealed class ApplicationUserTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static CreateApplicationUserRequest ValidRequest() =>
+    private static ApplicationUserData ValidRequest() =>
         new()
         {
             UserName = "alice",
