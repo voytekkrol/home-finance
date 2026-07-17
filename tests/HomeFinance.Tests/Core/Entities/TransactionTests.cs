@@ -1,5 +1,6 @@
 using HomeFinance.Core.Contracts.Transactions;
 using HomeFinance.Core.Entities;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Tests.Core.Entities;
 
@@ -79,14 +80,16 @@ public sealed class TransactionTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_OccurredOnMoreThan1DayInFuture_ThrowsArgumentOutOfRangeException()
+    public void Create_OccurredOnMoreThan1DayInFuture_ThrowsFutureDateException()
     {
         var request = ValidCreateRequest() with
         {
             OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2),
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<FutureDateException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.OccurredOn), ex.ParamName);
     }
 
     [Fact]
@@ -120,11 +123,13 @@ public sealed class TransactionTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_AmountIsZero_ThrowsArgumentOutOfRangeException()
+    public void Create_AmountIsZero_ThrowsZeroAmountException()
     {
         var request = ValidCreateRequest() with { Amount = 0m };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<ZeroAmountException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.Amount), ex.ParamName);
     }
 
     [Fact]
@@ -152,27 +157,33 @@ public sealed class TransactionTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_DescriptionIsNull_ThrowsArgumentException()
+    public void Create_DescriptionIsNull_ThrowsMissingRequiredValueException()
     {
         var request = ValidCreateRequest() with { Description = null! };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.Description), ex.ParamName);
     }
 
     [Fact]
-    public void Create_DescriptionIsWhiteSpace_ThrowsArgumentException()
+    public void Create_DescriptionIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
         var request = ValidCreateRequest() with { Description = "   " };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.Description), ex.ParamName);
     }
 
     [Fact]
-    public void Create_DescriptionExceeds256Chars_ThrowsArgumentException()
+    public void Create_DescriptionExceeds256Chars_ThrowsLabelTooLongException()
     {
         var request = ValidCreateRequest() with { Description = new string('D', 257) };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<LabelTooLongException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.Description), ex.ParamName);
     }
 
     [Fact]
@@ -190,19 +201,23 @@ public sealed class TransactionTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_AccountIdIsEmpty_ThrowsArgumentException()
+    public void Create_AccountIdIsEmpty_ThrowsEmptyGuidException()
     {
         var request = ValidCreateRequest() with { AccountId = Guid.Empty };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<EmptyGuidException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.AccountId), ex.ParamName);
     }
 
     [Fact]
-    public void Create_CategoryIdIsEmpty_ThrowsArgumentException()
+    public void Create_CategoryIdIsEmpty_ThrowsEmptyGuidException()
     {
         var request = ValidCreateRequest() with { CategoryId = Guid.Empty };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<EmptyGuidException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.CategoryId), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -210,19 +225,23 @@ public sealed class TransactionTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_EnteredByUserIdIsNull_ThrowsArgumentException()
+    public void Create_EnteredByUserIdIsNull_ThrowsInvalidIdentityUserIdException()
     {
         var request = ValidCreateRequest() with { EnteredByUserId = null! };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<InvalidIdentityUserIdException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.EnteredByUserId), ex.ParamName);
     }
 
     [Fact]
-    public void Create_EnteredByUserIdIsWhiteSpace_ThrowsArgumentException()
+    public void Create_EnteredByUserIdIsWhiteSpace_ThrowsInvalidIdentityUserIdException()
     {
         var request = ValidCreateRequest() with { EnteredByUserId = "   " };
 
-        Assert.ThrowsAny<ArgumentException>(() => Transaction.Create(request));
+        var ex = Assert.Throws<InvalidIdentityUserIdException>(() => Transaction.Create(request));
+
+        Assert.Equal(nameof(CreateTransactionData.EnteredByUserId), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -267,55 +286,65 @@ public sealed class TransactionTests
     }
 
     // -------------------------------------------------------------------------
-    // Edit — re-runs all Create validations (spot-checks)
+    // Edit — re-runs all Create validations (spot-checks, tightened)
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Edit_AmountIsZero_ThrowsArgumentOutOfRangeException()
+    public void Edit_AmountIsZero_ThrowsZeroAmountException()
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<ZeroAmountException>(() =>
             transaction.Edit(ValidEditRequest() with { Amount = 0m }));
+
+        Assert.Equal(nameof(EditTransactionData.Amount), ex.ParamName);
     }
 
     [Fact]
-    public void Edit_OccurredOnMoreThan1DayInFuture_ThrowsArgumentOutOfRangeException()
+    public void Edit_OccurredOnMoreThan1DayInFuture_ThrowsFutureDateException()
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<FutureDateException>(() =>
             transaction.Edit(ValidEditRequest() with
             {
                 OccurredOn = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(2),
             }));
+
+        Assert.Equal(nameof(EditTransactionData.OccurredOn), ex.ParamName);
     }
 
     [Fact]
-    public void Edit_DescriptionIsWhiteSpace_ThrowsArgumentException()
+    public void Edit_DescriptionIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<MissingRequiredValueException>(() =>
             transaction.Edit(ValidEditRequest() with { Description = "   " }));
+
+        Assert.Equal(nameof(EditTransactionData.Description), ex.ParamName);
     }
 
     [Fact]
-    public void Edit_AccountIdIsEmpty_ThrowsArgumentException()
+    public void Edit_AccountIdIsEmpty_ThrowsEmptyGuidException()
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<EmptyGuidException>(() =>
             transaction.Edit(ValidEditRequest() with { AccountId = Guid.Empty }));
+
+        Assert.Equal(nameof(EditTransactionData.AccountId), ex.ParamName);
     }
 
     [Fact]
-    public void Edit_CategoryIdIsEmpty_ThrowsArgumentException()
+    public void Edit_CategoryIdIsEmpty_ThrowsEmptyGuidException()
     {
         var transaction = Transaction.Create(ValidCreateRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<EmptyGuidException>(() =>
             transaction.Edit(ValidEditRequest() with { CategoryId = Guid.Empty }));
+
+        Assert.Equal(nameof(EditTransactionData.CategoryId), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -338,7 +367,7 @@ public sealed class TransactionTests
         {
             transaction.Edit(ValidEditRequest() with { Amount = 0m });
         }
-        catch (ArgumentException)
+        catch (ZeroAmountException)
         {
             // expected
         }

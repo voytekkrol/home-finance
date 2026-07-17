@@ -1,6 +1,7 @@
 using HomeFinance.Core.Categorization;
 using HomeFinance.Core.Contracts.Categories;
 using HomeFinance.Core.Entities;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Tests.Core.Entities;
 
@@ -60,24 +61,30 @@ public sealed class CategoryTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_NameIsNull_ThrowsArgumentException()
+    public void Create_NameIsNull_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<MissingRequiredValueException>(() =>
             Category.Create(new CategoryData { Name = null! }));
+
+        Assert.Equal(nameof(CategoryData.Name), ex.ParamName);
     }
 
     [Fact]
-    public void Create_NameIsWhiteSpace_ThrowsArgumentException()
+    public void Create_NameIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<MissingRequiredValueException>(() =>
             Category.Create(new CategoryData { Name = "   " }));
+
+        Assert.Equal(nameof(CategoryData.Name), ex.ParamName);
     }
 
     [Fact]
-    public void Create_NameExceeds64Chars_ThrowsArgumentException()
+    public void Create_NameExceeds64Chars_ThrowsLabelTooLongException()
     {
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<LabelTooLongException>(() =>
             Category.Create(new CategoryData { Name = new string('X', 65) }));
+
+        Assert.Equal(nameof(CategoryData.Name), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -129,14 +136,16 @@ public sealed class CategoryTests
     [InlineData("#607D8")]     // too short
     [InlineData("#607D8BB")]   // too long
     [InlineData("#GGGGGG")]    // non-hex characters
-    public void Create_MalformedColorHex_ThrowsArgumentException(string badColor)
+    public void Create_MalformedColorHex_ThrowsInvalidHexColorException(string badColor)
     {
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<InvalidHexColorException>(() =>
             Category.Create(new CategoryData
             {
                 Name = "Food",
                 ColorHex = badColor,
             }));
+
+        Assert.Equal(nameof(CategoryData.ColorHex), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -184,14 +193,16 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void Create_IconExceeds128Chars_ThrowsArgumentException()
+    public void Create_IconExceeds128Chars_ThrowsLabelTooLongException()
     {
-        Assert.ThrowsAny<ArgumentException>(() =>
+        var ex = Assert.Throws<LabelTooLongException>(() =>
             Category.Create(new CategoryData
             {
                 Name = "Food",
                 Icon = new string('i', 129),
             }));
+
+        Assert.Equal(nameof(CategoryData.Icon), ex.ParamName);
     }
 
     [Fact]
@@ -221,23 +232,25 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void Rename_WhiteSpaceName_ThrowsAndLeavesNameUnchanged()
+    public void Rename_WhiteSpaceName_ThrowsMissingRequiredValueExceptionAndLeavesNameUnchanged()
     {
         var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.ThrowsAny<ArgumentException>(() => category.Rename("   "));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => category.Rename("   "));
 
         Assert.Equal("Food", category.Name);
+        Assert.Equal("name", ex.ParamName);
     }
 
     [Fact]
-    public void Rename_NameExceeds64Chars_ThrowsAndLeavesNameUnchanged()
+    public void Rename_NameExceeds64Chars_ThrowsLabelTooLongExceptionAndLeavesNameUnchanged()
     {
         var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.ThrowsAny<ArgumentException>(() => category.Rename(new string('Y', 65)));
+        var ex = Assert.Throws<LabelTooLongException>(() => category.Rename(new string('Y', 65)));
 
         Assert.Equal("Food", category.Name);
+        Assert.Equal("name", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -265,25 +278,27 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void ChangeColor_WhiteSpaceColor_ThrowsArgumentException()
+    public void ChangeColor_WhiteSpaceColor_ThrowsMissingRequiredValueExceptionAndLeavesColorUnchanged()
     {
         var category = Category.Create(new CategoryData { Name = "Food" });
         var originalColor = category.ColorHex;
 
-        Assert.ThrowsAny<ArgumentException>(() => category.ChangeColor("   "));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => category.ChangeColor("   "));
 
         Assert.Equal(originalColor, category.ColorHex);
+        Assert.Equal("colorHex", ex.ParamName);
     }
 
     [Fact]
-    public void ChangeColor_MalformedColor_ThrowsArgumentExceptionAndLeavesColorUnchanged()
+    public void ChangeColor_MalformedColor_ThrowsInvalidHexColorExceptionAndLeavesColorUnchanged()
     {
         var category = Category.Create(new CategoryData { Name = "Food" });
         var originalColor = category.ColorHex;
 
-        Assert.ThrowsAny<ArgumentException>(() => category.ChangeColor("607D8B"));
+        var ex = Assert.Throws<InvalidHexColorException>(() => category.ChangeColor("607D8B"));
 
         Assert.Equal(originalColor, category.ColorHex);
+        Assert.Equal("colorHex", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -329,11 +344,13 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void ChangeIcon_ValueExceeds128Chars_ThrowsArgumentException()
+    public void ChangeIcon_ValueExceeds128Chars_ThrowsLabelTooLongException()
     {
         var category = Category.Create(new CategoryData { Name = "Food" });
 
-        Assert.ThrowsAny<ArgumentException>(() => category.ChangeIcon(new string('i', 129)));
+        var ex = Assert.Throws<LabelTooLongException>(() => category.ChangeIcon(new string('i', 129)));
+
+        Assert.Equal("icon", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------

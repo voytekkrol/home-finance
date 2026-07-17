@@ -1,6 +1,7 @@
 using HomeFinance.Core.Contracts.Accounts;
 using HomeFinance.Core.Entities;
 using HomeFinance.Core.Money;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Tests.Core.Entities;
 
@@ -83,7 +84,7 @@ public sealed class AccountTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_NameIsNull_ThrowsArgumentException()
+    public void Create_NameIsNull_ThrowsMissingRequiredValueException()
     {
         var request = new AccountData
         {
@@ -93,11 +94,13 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Name), ex.ParamName);
     }
 
     [Fact]
-    public void Create_NameIsWhiteSpace_ThrowsArgumentException()
+    public void Create_NameIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
         var request = new AccountData
         {
@@ -107,11 +110,13 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Name), ex.ParamName);
     }
 
     [Fact]
-    public void Create_NameExceeds64Chars_ThrowsArgumentException()
+    public void Create_NameExceeds64Chars_ThrowsLabelTooLongException()
     {
         var request = new AccountData
         {
@@ -121,7 +126,9 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<LabelTooLongException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Name), ex.ParamName);
     }
 
     [Fact]
@@ -145,7 +152,7 @@ public sealed class AccountTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_OwnerUserIdIsNull_ThrowsArgumentException()
+    public void Create_OwnerUserIdIsNull_ThrowsInvalidIdentityUserIdException()
     {
         var request = new AccountData
         {
@@ -155,11 +162,13 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidIdentityUserIdException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.OwnerUserId), ex.ParamName);
     }
 
     [Fact]
-    public void Create_OwnerUserIdIsWhiteSpace_ThrowsArgumentException()
+    public void Create_OwnerUserIdIsWhiteSpace_ThrowsInvalidIdentityUserIdException()
     {
         var request = new AccountData
         {
@@ -169,7 +178,9 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidIdentityUserIdException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.OwnerUserId), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -177,7 +188,7 @@ public sealed class AccountTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_UndefinedAccountType_ThrowsArgumentOutOfRangeException()
+    public void Create_UndefinedAccountType_ThrowsInvalidEnumValueException()
     {
         var request = new AccountData
         {
@@ -187,7 +198,9 @@ public sealed class AccountTests
             Currency = Currencies.Pln,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidEnumValueException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Type), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -195,7 +208,7 @@ public sealed class AccountTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_CurrencyIsNull_ThrowsArgumentException()
+    public void Create_CurrencyIsNull_ThrowsMissingRequiredValueException()
     {
         var request = new AccountData
         {
@@ -205,11 +218,13 @@ public sealed class AccountTests
             Currency = null!,
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Currency), ex.ParamName);
     }
 
     [Fact]
-    public void Create_CurrencyIsWhiteSpace_ThrowsArgumentException()
+    public void Create_CurrencyIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
         var request = new AccountData
         {
@@ -219,11 +234,13 @@ public sealed class AccountTests
             Currency = "   ",
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Currency), ex.ParamName);
     }
 
     [Fact]
-    public void Create_CurrencyFewerThan3Chars_ThrowsArgumentException()
+    public void Create_CurrencyFewerThan3Chars_ThrowsInvalidCurrencyCodeException()
     {
         var request = new AccountData
         {
@@ -233,11 +250,13 @@ public sealed class AccountTests
             Currency = "PL",
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidCurrencyCodeException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Currency), ex.ParamName);
     }
 
     [Fact]
-    public void Create_CurrencyMoreThan3Chars_ThrowsArgumentException()
+    public void Create_CurrencyMoreThan3Chars_ThrowsInvalidCurrencyCodeException()
     {
         var request = new AccountData
         {
@@ -247,11 +266,13 @@ public sealed class AccountTests
             Currency = "PLNN",
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidCurrencyCodeException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Currency), ex.ParamName);
     }
 
     [Fact]
-    public void Create_CurrencyContainsNonLetter_ThrowsArgumentException()
+    public void Create_CurrencyContainsNonLetter_ThrowsInvalidCurrencyCodeException()
     {
         var request = new AccountData
         {
@@ -261,7 +282,9 @@ public sealed class AccountTests
             Currency = "PL1",
         };
 
-        Assert.ThrowsAny<ArgumentException>(() => Account.Create(request));
+        var ex = Assert.Throws<InvalidCurrencyCodeException>(() => Account.Create(request));
+
+        Assert.Equal(nameof(AccountData.Currency), ex.ParamName);
     }
 
     [Fact]
@@ -316,25 +339,27 @@ public sealed class AccountTests
     }
 
     [Fact]
-    public void Rename_InvalidName_ThrowsAndLeavesNameUnchanged()
+    public void Rename_WhiteSpaceName_ThrowsMissingRequiredValueExceptionAndLeavesNameUnchanged()
     {
         var account = Account.Create(ValidRequest());
         var originalName = account.Name;
 
-        Assert.ThrowsAny<ArgumentException>(() => account.Rename("   "));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => account.Rename("   "));
 
         Assert.Equal(originalName, account.Name);
+        Assert.Equal("name", ex.ParamName);
     }
 
     [Fact]
-    public void Rename_NameExceeds64Chars_ThrowsAndLeavesNameUnchanged()
+    public void Rename_NameExceeds64Chars_ThrowsLabelTooLongExceptionAndLeavesNameUnchanged()
     {
         var account = Account.Create(ValidRequest());
         var originalName = account.Name;
 
-        Assert.ThrowsAny<ArgumentException>(() => account.Rename(new string('B', 65)));
+        var ex = Assert.Throws<LabelTooLongException>(() => account.Rename(new string('B', 65)));
 
         Assert.Equal(originalName, account.Name);
+        Assert.Equal("name", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------

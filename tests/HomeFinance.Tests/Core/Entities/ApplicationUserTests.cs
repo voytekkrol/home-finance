@@ -1,5 +1,6 @@
 using HomeFinance.Core.Contracts.Users;
 using HomeFinance.Core.Entities;
+using HomeFinance.Core.Validation;
 
 namespace HomeFinance.Tests.Core.Entities;
 
@@ -64,23 +65,27 @@ public sealed class ApplicationUserTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_UserNameIsNull_ThrowsArgumentException()
+    public void Create_UserNameIsNull_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
+        var ex = Assert.Throws<MissingRequiredValueException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = null!,
             DisplayName = "Alice",
         }));
+
+        Assert.Equal(nameof(ApplicationUserData.UserName), ex.ParamName);
     }
 
     [Fact]
-    public void Create_UserNameIsWhiteSpace_ThrowsArgumentException()
+    public void Create_UserNameIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
+        var ex = Assert.Throws<MissingRequiredValueException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "   ",
             DisplayName = "Alice",
         }));
+
+        Assert.Equal(nameof(ApplicationUserData.UserName), ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -88,33 +93,39 @@ public sealed class ApplicationUserTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_DisplayNameIsNull_ThrowsArgumentException()
+    public void Create_DisplayNameIsNull_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
+        var ex = Assert.Throws<MissingRequiredValueException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = null!,
         }));
+
+        Assert.Equal(nameof(ApplicationUserData.DisplayName), ex.ParamName);
     }
 
     [Fact]
-    public void Create_DisplayNameIsWhiteSpace_ThrowsArgumentException()
+    public void Create_DisplayNameIsWhiteSpace_ThrowsMissingRequiredValueException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
+        var ex = Assert.Throws<MissingRequiredValueException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = "   ",
         }));
+
+        Assert.Equal(nameof(ApplicationUserData.DisplayName), ex.ParamName);
     }
 
     [Fact]
-    public void Create_DisplayNameExceeds64Chars_ThrowsArgumentException()
+    public void Create_DisplayNameExceeds64Chars_ThrowsLabelTooLongException()
     {
-        Assert.ThrowsAny<ArgumentException>(() => ApplicationUser.Create(new ApplicationUserData
+        var ex = Assert.Throws<LabelTooLongException>(() => ApplicationUser.Create(new ApplicationUserData
         {
             UserName = "alice",
             DisplayName = new string('A', 65),
         }));
+
+        Assert.Equal(nameof(ApplicationUserData.DisplayName), ex.ParamName);
     }
 
     [Fact]
@@ -154,33 +165,37 @@ public sealed class ApplicationUserTests
     }
 
     [Fact]
-    public void Rename_NullName_ThrowsArgumentException()
+    public void Rename_NullName_ThrowsMissingRequiredValueException()
     {
         var user = ApplicationUser.Create(ValidRequest());
 
-        Assert.ThrowsAny<ArgumentException>(() => user.Rename(null!));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => user.Rename(null!));
+
+        Assert.Equal("displayName", ex.ParamName);
     }
 
     [Fact]
-    public void Rename_WhiteSpaceName_ThrowsAndLeavesDisplayNameUnchanged()
+    public void Rename_WhiteSpaceName_ThrowsMissingRequiredValueExceptionAndLeavesDisplayNameUnchanged()
     {
         var user = ApplicationUser.Create(ValidRequest());
         var original = user.DisplayName;
 
-        Assert.ThrowsAny<ArgumentException>(() => user.Rename("   "));
+        var ex = Assert.Throws<MissingRequiredValueException>(() => user.Rename("   "));
 
         Assert.Equal(original, user.DisplayName);
+        Assert.Equal("displayName", ex.ParamName);
     }
 
     [Fact]
-    public void Rename_NameExceeds64Chars_ThrowsAndLeavesDisplayNameUnchanged()
+    public void Rename_NameExceeds64Chars_ThrowsLabelTooLongExceptionAndLeavesDisplayNameUnchanged()
     {
         var user = ApplicationUser.Create(ValidRequest());
         var original = user.DisplayName;
 
-        Assert.ThrowsAny<ArgumentException>(() => user.Rename(new string('B', 65)));
+        var ex = Assert.Throws<LabelTooLongException>(() => user.Rename(new string('B', 65)));
 
         Assert.Equal(original, user.DisplayName);
+        Assert.Equal("displayName", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
