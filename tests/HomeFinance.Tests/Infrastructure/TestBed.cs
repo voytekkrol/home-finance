@@ -1,6 +1,7 @@
 using HomeFinance.Core.Contracts.Accounts;
 using HomeFinance.Core.Contracts.Categories;
 using HomeFinance.Core.Contracts.Transactions;
+using HomeFinance.Core.Contracts.Users;
 using HomeFinance.Core.Entities;
 using HomeFinance.Core.Money;
 using HomeFinance.Data;
@@ -23,17 +24,19 @@ public static class TestBed
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
 
-        var user = new ApplicationUser
+        var user = ApplicationUser.Create(new CreateApplicationUserRequest
         {
-            Id = Guid.NewGuid().ToString(),
             UserName = $"user_{suffix}",
-            NormalizedUserName = $"USER_{suffix.ToUpperInvariant()}",
-            Email = $"user_{suffix}@test.local",
-            NormalizedEmail = $"USER_{suffix.ToUpperInvariant()}@TEST.LOCAL",
-            SecurityStamp = suffix,
             DisplayName = $"User {suffix}",
-            EmailConfirmed = true,
-        };
+        });
+
+        // Identity plumbing fields that UserManager would normally populate
+        user.Id = Guid.NewGuid().ToString();
+        user.NormalizedUserName = $"USER_{suffix.ToUpperInvariant()}";
+        user.Email = $"user_{suffix}@test.local";
+        user.NormalizedEmail = $"USER_{suffix.ToUpperInvariant()}@TEST.LOCAL";
+        user.SecurityStamp = suffix;
+        user.EmailConfirmed = true;
 
         ctx.Users.Add(user);
         ctx.SaveChanges();

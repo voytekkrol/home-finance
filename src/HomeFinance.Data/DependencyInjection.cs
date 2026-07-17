@@ -10,9 +10,11 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("Default")
+            ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
+
         services.AddDbContext<HomeFinanceDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("Default")
-                ?? "Data Source=homefinance.db"));
+            options.UseSqlite(connectionString));
         return services;
     }
 }
