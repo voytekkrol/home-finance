@@ -7,10 +7,10 @@ public static class CategoryDataValidator
 {
     public static CategoryData Invoke(CategoryData data) => data with
     {
-        Name = Rules.RequireLabel(data.Name, 64, nameof(data.Name)),
+        Name = Rules.RequireLabel(data.Name, maxLength: 64, nameof(data.Name)),
         ColorHex = string.IsNullOrWhiteSpace(data.ColorHex)
             ? Colors.DefaultCategory
             : Rules.RequireHexColor(data.ColorHex, nameof(data.ColorHex)),
-        Icon = Rules.RequireOptionalLabel(data.Icon, 128, nameof(data.Icon)),
+        Icon = Rules.RequireOptionalLabel(data.Icon, maxLength: 128, nameof(data.Icon)),
     };
 }

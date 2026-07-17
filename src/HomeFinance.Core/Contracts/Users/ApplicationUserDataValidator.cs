@@ -6,7 +6,7 @@ public static class ApplicationUserDataValidator
 {
     public static ApplicationUserData Invoke(ApplicationUserData data) => data with
     {
-        UserName = Rules.RequireLabel(data.UserName, 256, nameof(data.UserName)),
-        DisplayName = Rules.RequireLabel(data.DisplayName, 64, nameof(data.DisplayName)),
+        UserName = Rules.RequireLabel(data.UserName, maxLength: 256, nameof(data.UserName)),
+        DisplayName = Rules.RequireLabel(data.DisplayName, maxLength: 64, nameof(data.DisplayName)),
     };
 }

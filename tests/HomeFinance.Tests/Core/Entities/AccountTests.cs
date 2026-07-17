@@ -12,9 +12,9 @@ public sealed class AccountTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_ValidRequest_ReturnsAccountWithGeneratedId()
+    public void Create_ValidData_ReturnsAccountWithGeneratedId()
     {
-        var request = ValidRequest();
+        var request = ValidData();
 
         var account = Account.Create(request);
 
@@ -22,18 +22,18 @@ public sealed class AccountTests
     }
 
     [Fact]
-    public void Create_ValidRequest_SetsCreatedUtcToApproximatelyNow()
+    public void Create_ValidData_SetsCreatedUtcToApproximatelyNow()
     {
         var before = DateTime.UtcNow;
 
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         var after = DateTime.UtcNow;
         Assert.InRange(account.CreatedUtc, before, after);
     }
 
     [Fact]
-    public void Create_ValidRequest_PopulatesAllFieldsFromRequest()
+    public void Create_ValidData_PopulatesAllFieldsFromRequest()
     {
         var request = new AccountData
         {
@@ -54,27 +54,27 @@ public sealed class AccountTests
     }
 
     [Fact]
-    public void Create_ValidRequest_IsArchivedIsFalse()
+    public void Create_ValidData_IsArchivedIsFalse()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         Assert.False(account.IsArchived);
     }
 
     [Fact]
-    public void Create_ValidRequest_TransactionsCollectionIsEmpty()
+    public void Create_ValidData_TransactionsCollectionIsEmpty()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         Assert.Empty(account.Transactions);
     }
 
     // -------------------------------------------------------------------------
-    // Create — null request
+    // Create — null data
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_NullRequest_ThrowsArgumentNullException()
+    public void Create_NullData_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => Account.Create(null!));
     }
@@ -331,7 +331,7 @@ public sealed class AccountTests
     [Fact]
     public void Rename_ValidName_ChangesName()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         account.Rename("New Name");
 
@@ -341,25 +341,25 @@ public sealed class AccountTests
     [Fact]
     public void Rename_WhiteSpaceName_ThrowsMissingRequiredValueExceptionAndLeavesNameUnchanged()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
         var originalName = account.Name;
 
         var ex = Assert.Throws<MissingRequiredValueException>(() => account.Rename("   "));
 
         Assert.Equal(originalName, account.Name);
-        Assert.Equal("name", ex.ParamName);
+        Assert.Equal("Name", ex.ParamName);
     }
 
     [Fact]
     public void Rename_NameExceeds64Chars_ThrowsLabelTooLongExceptionAndLeavesNameUnchanged()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
         var originalName = account.Name;
 
         var ex = Assert.Throws<LabelTooLongException>(() => account.Rename(new string('B', 65)));
 
         Assert.Equal(originalName, account.Name);
-        Assert.Equal("name", ex.ParamName);
+        Assert.Equal("Name", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -369,7 +369,7 @@ public sealed class AccountTests
     [Fact]
     public void Archive_WhenNotArchived_SetsIsArchivedTrue()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         account.Archive();
 
@@ -379,7 +379,7 @@ public sealed class AccountTests
     [Fact]
     public void Archive_WhenAlreadyArchived_IsNoOp()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
         account.Archive();
 
         account.Archive();
@@ -390,7 +390,7 @@ public sealed class AccountTests
     [Fact]
     public void Unarchive_WhenArchived_SetsIsArchivedFalse()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
         account.Archive();
 
         account.Unarchive();
@@ -401,7 +401,7 @@ public sealed class AccountTests
     [Fact]
     public void Unarchive_WhenNotArchived_IsNoOp()
     {
-        var account = Account.Create(ValidRequest());
+        var account = Account.Create(ValidData());
 
         account.Unarchive();
 
@@ -412,7 +412,7 @@ public sealed class AccountTests
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static AccountData ValidRequest() =>
+    private static AccountData ValidData() =>
         new()
         {
             Name = "Test Account",

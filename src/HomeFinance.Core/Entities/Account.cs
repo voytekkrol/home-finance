@@ -5,7 +5,7 @@ namespace HomeFinance.Core.Entities;
 
 public sealed class Account
 {
-    private List<Transaction> _transactions = [];
+    private readonly List<Transaction> _transactions = [];
 
     // EF Core hydration only
     private Account() { }
@@ -38,7 +38,7 @@ public sealed class Account
 
     public void Rename(string name)
     {
-        Name = Rules.RequireLabel(name, 64, nameof(name));
+        Name = Rules.RequireLabel(name, 64, nameof(Name));
     }
 
     public void Archive()

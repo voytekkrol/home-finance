@@ -5,7 +5,7 @@ namespace HomeFinance.Core.Entities;
 
 public sealed class Category
 {
-    private List<Transaction> _transactions = [];
+    private readonly List<Transaction> _transactions = [];
 
     // EF Core hydration only
     private Category() { }
@@ -35,17 +35,17 @@ public sealed class Category
 
     public void Rename(string name)
     {
-        Name = Rules.RequireLabel(name, 64, nameof(name));
+        Name = Rules.RequireLabel(name, 64, nameof(Name));
     }
 
     public void ChangeColor(string colorHex)
     {
-        ColorHex = Rules.RequireHexColor(colorHex, nameof(colorHex));
+        ColorHex = Rules.RequireHexColor(colorHex, nameof(ColorHex));
     }
 
     public void ChangeIcon(string? icon)
     {
-        Icon = Rules.RequireOptionalLabel(icon, 128, nameof(icon));
+        Icon = Rules.RequireOptionalLabel(icon, 128, nameof(Icon));
     }
 
     public void Archive()

@@ -24,6 +24,6 @@ public sealed class ApplicationUser : IdentityUser
 
     public void Rename(string displayName)
     {
-        DisplayName = Rules.RequireLabel(displayName, 64, nameof(displayName));
+        DisplayName = Rules.RequireLabel(displayName, 64, nameof(DisplayName));
     }
 }

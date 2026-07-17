@@ -12,7 +12,7 @@ public sealed class CategoryTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_MinimalRequest_UsesDefaultCategoryColor()
+    public void Create_MinimalData_UsesDefaultCategoryColor()
     {
         var category = Category.Create(new CategoryData { Name = "Groceries" });
 
@@ -20,7 +20,7 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void Create_MinimalRequest_IconIsNull()
+    public void Create_MinimalData_IconIsNull()
     {
         var category = Category.Create(new CategoryData { Name = "Groceries" });
 
@@ -28,7 +28,7 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void Create_ValidRequest_ReturnsWithGeneratedId()
+    public void Create_ValidData_ReturnsWithGeneratedId()
     {
         var category = Category.Create(new CategoryData { Name = "Groceries" });
 
@@ -36,7 +36,7 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void Create_ValidRequest_SetsCreatedUtcToApproximatelyNow()
+    public void Create_ValidData_SetsCreatedUtcToApproximatelyNow()
     {
         var before = DateTime.UtcNow;
 
@@ -47,11 +47,11 @@ public sealed class CategoryTests
     }
 
     // -------------------------------------------------------------------------
-    // Create — null request
+    // Create — null data
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void Create_NullRequest_ThrowsArgumentNullException()
+    public void Create_NullData_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => Category.Create(null!));
     }
@@ -239,7 +239,7 @@ public sealed class CategoryTests
         var ex = Assert.Throws<MissingRequiredValueException>(() => category.Rename("   "));
 
         Assert.Equal("Food", category.Name);
-        Assert.Equal("name", ex.ParamName);
+        Assert.Equal("Name", ex.ParamName);
     }
 
     [Fact]
@@ -250,7 +250,7 @@ public sealed class CategoryTests
         var ex = Assert.Throws<LabelTooLongException>(() => category.Rename(new string('Y', 65)));
 
         Assert.Equal("Food", category.Name);
-        Assert.Equal("name", ex.ParamName);
+        Assert.Equal("Name", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -286,7 +286,7 @@ public sealed class CategoryTests
         var ex = Assert.Throws<MissingRequiredValueException>(() => category.ChangeColor("   "));
 
         Assert.Equal(originalColor, category.ColorHex);
-        Assert.Equal("colorHex", ex.ParamName);
+        Assert.Equal("ColorHex", ex.ParamName);
     }
 
     [Fact]
@@ -298,7 +298,7 @@ public sealed class CategoryTests
         var ex = Assert.Throws<InvalidHexColorException>(() => category.ChangeColor("607D8B"));
 
         Assert.Equal(originalColor, category.ColorHex);
-        Assert.Equal("colorHex", ex.ParamName);
+        Assert.Equal("ColorHex", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
@@ -350,7 +350,7 @@ public sealed class CategoryTests
 
         var ex = Assert.Throws<LabelTooLongException>(() => category.ChangeIcon(new string('i', 129)));
 
-        Assert.Equal("icon", ex.ParamName);
+        Assert.Equal("Icon", ex.ParamName);
     }
 
     // -------------------------------------------------------------------------
