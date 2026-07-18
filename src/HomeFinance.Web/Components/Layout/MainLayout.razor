@@ -11,6 +11,23 @@
                        OnClick="@ToggleDrawer" />
         <MudText Typo="Typo.h6" Class="ml-3">Home Finance</MudText>
         <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle"
+                         Label="@context.User.FindFirst("DisplayName")?.Value"
+                         Color="Color.Inherit">
+                    <form method="post" action="/logout">
+                        <AntiforgeryToken />
+                        <MudMenuItem>
+                            <MudButton ButtonType="ButtonType.Submit"
+                                       Variant="Variant.Text"
+                                       Color="Color.Inherit"
+                                       FullWidth="true">Sign out</MudButton>
+                        </MudMenuItem>
+                    </form>
+                </MudMenu>
+            </Authorized>
+        </AuthorizeView>
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
         <MudDrawerHeader>

@@ -1,6 +1,8 @@
-<MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="/transactions" Icon="@Icons.Material.Filled.Receipt">Transactions</MudNavLink>
-    <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Label">Categories</MudNavLink>
-    <MudNavLink Href="/accounts" Icon="@Icons.Material.Filled.AccountBalance">Accounts</MudNavLink>
-</MudNavMenu>
+<AuthorizeView>
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Href="/transactions" Icon="@Icons.Material.Filled.Receipt">Transactions</MudNavLink>
+        <MudNavLink Href="/categories" Icon="@Icons.Material.Filled.Label">Categories</MudNavLink>
+        <MudNavLink Href="/accounts" Icon="@Icons.Material.Filled.AccountBalance">Accounts</MudNavLink>
+    </MudNavMenu>
+</AuthorizeView>

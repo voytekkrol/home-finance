@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\HomeFinance.Core\HomeFinance.Core.csproj" />
     <ProjectReference Include="..\..\src\HomeFinance.Data\HomeFinance.Data.csproj" />
+    <ProjectReference Include="..\..\src\HomeFinance.Web\HomeFinance.Web.csproj" />
   </ItemGroup>
 
 </Project>

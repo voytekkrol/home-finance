@@ -1,0 +1,13 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center login-full-height">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

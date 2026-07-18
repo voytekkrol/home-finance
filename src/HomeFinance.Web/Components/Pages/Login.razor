@@ -1,0 +1,41 @@
+@page "/login"
+@layout LoginLayout
+@attribute [AllowAnonymous]
+@inherits LoginBase
+
+<PageTitle>Sign in — Home Finance</PageTitle>
+
+<MudPaper Class="pa-8 mt-8" Width="100%" MaxWidth="400px" Elevation="4">
+    <MudText Typo="Typo.h5" GutterBottom="true">Sign in</MudText>
+
+    @if (ErrorMessage is not null)
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+    }
+
+    <form method="post" action="/login">
+        <AntiforgeryToken />
+        <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+        <MudTextField Label="Username"
+                      Value="@PrefilledUserName"
+                      For="@(() => Input.UserName)"
+                      Immediate="false"
+                      FullWidth="true"
+                      Class="mb-4"
+                      UserAttributes="@_userNameAttrs" />
+
+        <MudTextField Label="Password"
+                      InputType="InputType.Password"
+                      For="@(() => Input.Password)"
+                      Immediate="false"
+                      FullWidth="true"
+                      Class="mb-6"
+                      UserAttributes="@_passwordAttrs" />
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true">Sign in</MudButton>
+    </form>
+</MudPaper>

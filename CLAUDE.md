@@ -39,7 +39,7 @@ Dependency rules:
 ## 4. Conventions
 
 **Naming**
-- Types, methods, properties: `PascalCase`. Locals, parameters: `camelCase`. Private fields: `_camelCase`. Constants: `PascalCase`. Async methods end in `Async`.
+- Types, methods, properties: `PascalCase`. Locals, parameters: `camelCase`. Instance fields (private and protected): `_camelCase`. Constants: `PascalCase`. Async methods end in `Async`.
 - Files match the primary type they contain. One public type per file unless tiny records live together.
 - Interfaces: `IThing`. Do not prefix classes with `C`.
 
@@ -54,7 +54,10 @@ Dependency rules:
 - Pages under `src/HomeFinance.Web/Components/Pages/`, layouts under `Layout/`, shared components under `Shared/`.
 - Use MudBlazor components (`MudTable`, `MudForm`, `MudDialog`, `MudSnackbar`, `MudChart`) — no raw `<table>` / Bootstrap.
 - Prefer `InteractiveServer` render mode for now. Only mark a component `InteractiveAuto`/`InteractiveWebAssembly` if it has a real reason to run client-side.
-- Extract logic-heavy components into a `.razor.cs` code-behind partial class.
+- **Never use inline `Style="..."`** on any component. Move styles to a `.razor.css` CSS isolation file alongside the component, or to `app.css` for global utilities. Always use `Class="..."`.
+- Extract logic-heavy components using one of two patterns — pick one per component and be consistent:
+  - **Code-behind partial:** `Login.razor` + `Login.razor.cs` containing `public partial class Login`. The `.razor.cs` filename must match the component name.
+  - **Inherited base class:** `Login.razor` (`@inherits LoginBase`) + `LoginBase.cs` (abstract `ComponentBase` subclass). The base-class file lives alongside the component and is named `<Component>Base.cs`, not `<Component>.razor.cs`.
 
 **EF Core**
 - One `DbContext` per bounded area (`HomeFinanceDbContext` in `Data`; modules get their own later).
@@ -64,6 +67,7 @@ Dependency rules:
 
 **Dependency injection**
 - Register services in feature-scoped extension methods (`AddCoreServices`, `AddDataServices`) — do not fatten `Program.cs`.
+- The static class holding these extension methods is named `ServiceCollectionExtensions`, not `DependencyInjection` (that name implies a custom container).
 - Services are `sealed` and depend on interfaces, not concretes.
 
 **Multi-parameter factories and methods**
