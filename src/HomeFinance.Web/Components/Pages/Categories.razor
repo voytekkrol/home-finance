@@ -1,0 +1,43 @@
+@page "/categories"
+@rendermode InteractiveServer
+@using HomeFinance.Core.Entities
+@using HomeFinance.Data
+@using Microsoft.EntityFrameworkCore
+@inject HomeFinanceDbContext Db
+
+<PageTitle>Categories</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Categories</MudText>
+
+@if (_categories is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="_categories" Hover="true" Striped="true">
+        <HeaderContent>
+            <MudTh>Color</MudTh>
+            <MudTh>Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                @* dynamic per-row background; static class provides shape only *@
+                <div class="category-swatch" style="background-color: @context.ColorHex"></div>
+            </MudTd>
+            <MudTd>@context.Name</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<Category>? _categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await Db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
+}

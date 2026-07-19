@@ -10,7 +10,7 @@ Each row is one independently mergeable slice (a few hundred diff lines, per `CL
 |---|---|---|---|
 | 1 | Rich domain model, EF layer, validation, tests | ✅ done | `866aba3` |
 | 2 | Identity wiring + 2 seeded users + login/logout | ✅ done | — |
-| 3 | Seed 39 categories + read-only category list page | ⚪ pending | — |
+| 3 | Seed 39 categories + read-only category list page | ✅ done | — |
 | 4 | Accounts CRUD (list + create + rename + archive) | ⚪ pending | — |
 | 5 | Transactions list + create form | ⚪ pending | — |
 | 6 | Transaction edit + delete | ⚪ pending | — |
