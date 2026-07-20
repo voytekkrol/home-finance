@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 .claude/skills/
 .agents/skills/
 /src/HomeFinance.Web/appsettings.Development.json
+/src/HomeFinance.Web/homefinance.db
+/src/HomeFinance.Web/homefinance.db-shm
+/src/HomeFinance.Web/homefinance.db-wal
