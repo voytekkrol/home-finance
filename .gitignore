@@ -484,4 +484,6 @@ $RECYCLE.BIN/
 # Claude Code local settings
 .claude/settings.local.json
 .claude/worktrees/
+.claude/skills/
+.agents/skills/
 /src/HomeFinance.Web/appsettings.Development.json
