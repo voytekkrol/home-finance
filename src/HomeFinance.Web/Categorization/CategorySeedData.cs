@@ -2,7 +2,7 @@ using HomeFinance.Core.Contracts.Categories;
 
 namespace HomeFinance.Web.Categorization;
 
-internal static class CategorySeedData
+public static class CategorySeedData
 {
     public static IReadOnlyList<CategoryData> All { get; } =
     [

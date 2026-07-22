@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeFinance.Web.Categorization;
 
-internal sealed class CategorySeeder : ICategorySeeder
+public sealed class CategorySeeder : ICategorySeeder
 {
     private readonly HomeFinanceDbContext _db;
 

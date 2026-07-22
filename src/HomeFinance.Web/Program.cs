@@ -1,6 +1,7 @@
 using HomeFinance.Core;
 using HomeFinance.Data;
 using HomeFinance.Web.Authentication;
+using HomeFinance.Web.Categorization;
 using HomeFinance.Web.Components;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
@@ -11,6 +12,7 @@ builder.Services.AddCoreServices();
 builder.Services.AddDataServices(builder.Configuration);
 builder.Services.AddMudServices();
 builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddCategorySeeder();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 var app = builder.Build();
@@ -20,6 +22,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<HomeFinanceDbContext>();
     await db.Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<IUserSeeder>().SeedAsync(default);
+    await scope.ServiceProvider.GetRequiredService<ICategorySeeder>().SeedAsync(default);
 }
 
 if (!app.Environment.IsDevelopment())
